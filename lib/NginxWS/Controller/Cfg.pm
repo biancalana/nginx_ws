@@ -114,6 +114,11 @@ sub BuildCfg_UPSTREAM {
   }
 
   my $out = "upstream $cfg->{name} {\n";
+
+  unless ( $cfg->{ip_hash} ) {
+    $out .= "\tip_hash;\n"
+  }
+
   foreach my $server ( @{$cfg->{servers}} ) {
 
     # server address is defined and hostname or ip addr
@@ -137,10 +142,10 @@ sub BuildCfg_UPSTREAM {
     }
 
     # slow_start defined and integer
-    if ( $server->{slow_start} ) {
-      die "invalid server slow_start" unless $server->{slow_start} =~ /^\d{1,2}$/;
-      $out .= " slow_start=$server->{slow_start}";
-    }
+    #if ( $server->{slow_start} ) {
+    #  die "invalid server slow_start" unless $server->{slow_start} =~ /^\d{1,2}$/;
+    #  $out .= " slow_start=$server->{slow_start}";
+    #}
 
     # weight defined and integer
     if ( $server->{weight} ) {

@@ -78,6 +78,7 @@ sub MakeEnvironment {
   return  if $err;
 
   unless ( dircopy(sprintf("%s/*", $self->config->{nginx_conf_dir}), $temp_dir) ) {
+    rmdir($temp_dir);
     $self->app->log->error(sprintf("dircopy(%s/*, %s), %s", $self->config->{nginx_conf_dir}, $temp_dir, $!));
     return;
   }

@@ -61,7 +61,7 @@ sub startup {
 
       my $localtime_str = localtime($time);
 
-      return(sprintf("[%s] [%s] [%s:%d] [%s] [%s] %s\n", $localtime_str, $level, $c->stash->{route}, $c->stash->{ip}, join("\n", @lines)));
+      return(sprintf("[%s] [%s] [%s:%s] [%s] [%s] %s\n", $localtime_str, $level, $c->stash->{route}, $c->stash->{ip}, join("\n", @lines)));
     });
   });
 
@@ -69,7 +69,7 @@ sub startup {
   # Normal route to controller
   #
 =json_add_cfg_example
-   "http":{
+   "{http":{
       "upstream":{
          "name":"backend1",
          "servers":[
