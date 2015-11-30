@@ -234,7 +234,7 @@ sub BuildCfg_SERVER {
   }
 
   if ( $cfg->{proxy_read_timeout} ) {
-    die "invalid proxy_read_timeout"  unless ( $cfg->{proxy_read_timeout} =~ /^\d{2}$/;
+    die "invalid proxy_read_timeout"  unless ( $cfg->{proxy_read_timeout} =~ /^\d{2}$/ );
     $out .= "\tproxy_read_timeout $cfg->{proxy_read_timeout};\n";
   } else {
     $out .= "\tproxy_read_timeout 15;\n";
