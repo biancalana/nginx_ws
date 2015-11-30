@@ -13,9 +13,9 @@ my %CfgBuilder = ( http   => { server   => \&BuildCfg_SERVER,
                    stream => ( server   => \&BuildCfg_SERVER,
                               upstream => \&BuildCfg_UPSTREAM ));
 
-#
-#
-#
+#=====================================================================
+# Read, Test and commit server and upstream configuration
+#=====================================================================
 sub save {
 
   my ( $self, $app, $tx, $json );
@@ -57,6 +57,7 @@ sub save {
       try {
         if ( ref($json->{$service_layer}->{$cfg_type}) eq 'ARRAY' ) {
           foreach ( @{$json->{$service_layer}->{$cfg_type}} ) {
+
             $CfgBuilder{$service_layer}{$cfg_type}($cfg_path, $_);
           }
         } else {
@@ -99,9 +100,9 @@ sub save {
   return $self->ok("Ok");
 }
 
-#
-#
-#
+#=====================================================================
+# Build server upstream nginx configuration
+#=====================================================================
 sub BuildCfg_UPSTREAM {
 
   my ( $temp_dir, $cfg );
@@ -119,6 +120,17 @@ sub BuildCfg_UPSTREAM {
     $out .= "\tip_hash;\n"
   }
 
+  unless ( $cfg->{least_conn} ) {
+    $out .= "\tleast_conn;\n"
+  }
+
+  if ( $cfg->{keepalive} ) {
+    die "invalid server keepalive" unless $server->{keepalive} =~ /^\d{1,2}$/;
+    $out .= "\keepalive $cfg->{keepalive};\n"
+  } else {
+    $out .= "\keepalive 3;\n"
+  }
+
   foreach my $server ( @{$cfg->{servers}} ) {
 
     # server address is defined and hostname or ip addr
@@ -133,6 +145,8 @@ sub BuildCfg_UPSTREAM {
     if ( $server->{fail_timeout} ) {
       die "invalid server fail_timeout" unless $server->{fail_timeout} =~ /^\d{1,2}$/;
       $out .= " fail_timeout=$server->{fail_timeout}";
+    } else {
+      $out .= " fail_timeout=40";
     }
 
     # max_fails defined and integer
@@ -176,9 +190,9 @@ sub BuildCfg_UPSTREAM {
   die unless NginxWS::Util::WriteFile("$temp_dir-$cfg->{name}.conf", $out);
 }
 
+#=====================================================================
 #
-#
-#
+#=====================================================================
 sub BuildCfg_SERVER {
 
   my ( $temp_dir, $cfg );
@@ -206,6 +220,25 @@ sub BuildCfg_SERVER {
   }
 
   $out .= "\tlisten $cfg->{port};\n";
+
+  if ( ! $cfg->{no_keepalive} ) {
+    $out .= "\tproxy_http_version 1.1;\n"
+    $out .= "\tproxy_set_header Connection \"\";\n"
+  }
+
+  if ( $cfg->{proxy_connect_timeout} ) {
+    die "invalid proxy_connect_timeout"  unless ( $cfg->{proxy_connect_timeout} =~ /^\{5}$/ ) {
+    $out .= "\tproxy_connect_timeout $cfg->{proxy_connect_timeout};\n"
+  } else {
+    $out .= "\tproxy_connect_timeout 5;\n"
+  }
+
+  if ( $cfg->{proxy_read_timeout} ) {
+    die "invalid proxy_read_timeout"  unless ( $cfg->{proxy_read_timeout} =~ /^\{5}$/ ) {
+    $out .= "\tproxy_read_timeout $cfg->{proxy_read_timeout};\n"
+  } else {
+    $out .= "\tproxy_read_timeout 15;\n"
+  }
 
   foreach my $location ( @{$cfg->{location}} ) {
 
