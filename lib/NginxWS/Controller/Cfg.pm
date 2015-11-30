@@ -50,7 +50,7 @@ sub save {
 
       $app->log->debug("\tservice_layer($service_layer) cfg_type($cfg_type)");
 
-      $cfg_path = sprintf("%s/%s/%s", $self->stash->{temp_dir}, $service_layer, $cfg_type);
+      $cfg_path = sprintf("%s/apps/%s-%s", $self->stash->{temp_dir}, $service_layer, $cfg_type);
 
       #
       # Parse Json, build and write config
@@ -117,25 +117,25 @@ sub BuildCfg_UPSTREAM {
   my $out = "upstream $cfg->{name} {\n";
 
   unless ( $cfg->{ip_hash} ) {
-    $out .= "\tip_hash;\n"
+    $out .= "\tip_hash;\n";
   }
 
   unless ( $cfg->{least_conn} ) {
-    $out .= "\tleast_conn;\n"
+    $out .= "\tleast_conn;\n";
   }
 
   if ( $cfg->{keepalive} ) {
-    die "invalid server keepalive" unless $server->{keepalive} =~ /^\d{1,2}$/;
-    $out .= "\keepalive $cfg->{keepalive};\n"
+    die "invalid server keepalive" unless $cfg->{keepalive} =~ /^\d{1,2}$/;
+    $out .= "\tkeepalive $cfg->{keepalive};\n";
   } else {
-    $out .= "\keepalive 3;\n"
+    $out .= "\tkeepalive 3;\n";
   }
 
   foreach my $server ( @{$cfg->{servers}} ) {
 
     # server address is defined and hostname or ip addr
     unless ( $server->{addr} and
-                ( $server->{addr} =~ /^\{3}\.\{3}\.\{3}\.\{3}$/ or
+                ( $server->{addr} =~ /^\d{3}\.\d{3}\.\d{3}\.\d{3}$/ or
                   $server->{addr} =~ /^[\w\-\.]+$/ ) ) {
       die "invalid server address";
     }
@@ -212,7 +212,7 @@ sub BuildCfg_SERVER {
 
   # server address is defined and hostname or ip addr
   if ( $cfg->{port} ) {
-    unless ( $cfg->{port} =~ /^\{5}$/ && $cfg->{port} >= 65535 ) {
+    unless ( $cfg->{port} =~ /^\d{5}$/ && $cfg->{port} >= 65535 ) {
       die "invalid port";
     }
   } else {
@@ -222,22 +222,22 @@ sub BuildCfg_SERVER {
   $out .= "\tlisten $cfg->{port};\n";
 
   if ( ! $cfg->{no_keepalive} ) {
-    $out .= "\tproxy_http_version 1.1;\n"
-    $out .= "\tproxy_set_header Connection \"\";\n"
+    $out .= "\tproxy_http_version 1.1;\n";
+    $out .= "\tproxy_set_header Connection \"\";\n";
   }
 
   if ( $cfg->{proxy_connect_timeout} ) {
-    die "invalid proxy_connect_timeout"  unless ( $cfg->{proxy_connect_timeout} =~ /^\{5}$/ ) {
-    $out .= "\tproxy_connect_timeout $cfg->{proxy_connect_timeout};\n"
+    die "invalid proxy_connect_timeout"  unless ( $cfg->{proxy_connect_timeout} =~ /^\d{2}$/ );
+    $out .= "\tproxy_connect_timeout $cfg->{proxy_connect_timeout};\n";
   } else {
-    $out .= "\tproxy_connect_timeout 5;\n"
+    $out .= "\tproxy_connect_timeout 5;\n";
   }
 
   if ( $cfg->{proxy_read_timeout} ) {
-    die "invalid proxy_read_timeout"  unless ( $cfg->{proxy_read_timeout} =~ /^\{5}$/ ) {
-    $out .= "\tproxy_read_timeout $cfg->{proxy_read_timeout};\n"
+    die "invalid proxy_read_timeout"  unless ( $cfg->{proxy_read_timeout} =~ /^\d{2}$/;
+    $out .= "\tproxy_read_timeout $cfg->{proxy_read_timeout};\n";
   } else {
-    $out .= "\tproxy_read_timeout 15;\n"
+    $out .= "\tproxy_read_timeout 15;\n";
   }
 
   foreach my $location ( @{$cfg->{location}} ) {
