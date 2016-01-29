@@ -116,12 +116,8 @@ sub BuildCfg_UPSTREAM {
 
   my $out = "upstream $cfg->{name} {\n";
 
-  unless ( $cfg->{ip_hash} ) {
-    $out .= "\tip_hash;\n";
-  }
-
-  unless ( $cfg->{least_conn} ) {
-    $out .= "\tleast_conn;\n";
+  if ( $cfg->{algorithm} =~ /^(least_conn|ip_hash)$/ ) {
+    $out .= "\t$cfg->{algorithm};\n";
   }
 
   if ( $cfg->{keepalive} ) {
